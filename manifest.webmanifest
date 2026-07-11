@@ -1,0 +1,19 @@
+{
+  "name": "SpeakLoop",
+  "short_name": "SpeakLoop",
+  "description": "Daily AI-style language practice with chat, corrections, vocabulary, and roleplay.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#101828",
+  "theme_color": "#101828",
+  "icons": [
+    {
+      "src": "speakloop-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

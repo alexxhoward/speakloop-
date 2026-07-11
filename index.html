@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SpeakLoop</title>
+  <meta name="theme-color" content="#101828">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SpeakLoop">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="speakloop-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="speakloop-icon.svg">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c1220;
+      --panel: rgba(18, 28, 48, 0.78);
+      --panel-solid: #121c30;
+      --panel-soft: #18243c;
+      --ink: #f7f7fb;
+      --muted: #aeb9cc;
+      --line: rgba(255, 255, 255, 0.12);
+      --accent: #65e4c6;
+      --accent-2: #8aa7ff;
+      --warm: #ffd166;
+      --danger: #ff7b8f;
+      --user: #4d6dff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(101, 228, 198, 0.22), transparent 25rem),
+        radial-gradient(circle at 88% 5%, rgba(138, 167, 255, 0.22), transparent 28rem),
+        linear-gradient(180deg, #101828 0%, var(--bg) 48%, #070b14 100%);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(100%, 1120px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+    }
+
+    .sidebar, .chat-shell {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
+
+    .sidebar {
+      border-radius: 28px;
+      padding: 16px;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      min-height: calc(100svh - 38px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px 10px;
+    }
+
+    .mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #061116;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 950;
+      box-shadow: 0 12px 30px rgba(101, 228, 198, 0.24);
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 25px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .streak {
+      border: 1px solid rgba(255, 209, 102, 0.28);
+      color: var(--warm);
+      border-radius: 999px;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(255, 209, 102, 0.08);
+      white-space: nowrap;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.055);
+      border-radius: 22px;
+      padding: 13px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(7, 11, 20, 0.68);
+      border-radius: 14px;
+      padding: 12px;
+      outline: none;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: rgba(101, 228, 198, 0.78);
+      box-shadow: 0 0 0 3px rgba(101, 228, 198, 0.13);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.055);
+      border-radius: 999px;
+      padding: 9px 11px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .chip.active {
+      color: #071117;
+      background: var(--accent);
+      border-color: transparent;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(7, 11, 20, 0.42);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .vocab-list {
+      display: grid;
+      gap: 8px;
+      max-height: 190px;
+      overflow: hidden;
+    }
+
+    .vocab {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 9px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+    }
+
+    .vocab b {
+      font-weight: 850;
+    }
+
+    .vocab span {
+      color: var(--muted);
+    }
+
+    .chat-shell {
+      border-radius: 28px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: calc(100svh - 38px);
+      overflow: hidden;
+    }
+
+    .chat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .tutor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(101, 228, 198, 0.24), rgba(138, 167, 255, 0.25));
+      border: 1px solid var(--line);
+      font-weight: 950;
+      flex: 0 0 auto;
+    }
+
+    .tutor h2 {
+      font-size: 17px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .status-dot::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--accent);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .icon-btn, .primary-btn {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      min-height: 42px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 850;
+    }
+
+    .primary-btn {
+      color: #071117;
+      background: linear-gradient(135deg, var(--accent), #9cf7df);
+      border-color: transparent;
+    }
+
+    .messages {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      display: grid;
+      gap: 7px;
+      max-width: min(84%, 640px);
+    }
+
+    .message.user {
+      align-self: end;
+      justify-items: end;
+    }
+
+    .bubble {
+      padding: 13px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.07);
+      line-height: 1.48;
+      font-size: 15px;
+    }
+
+    .user .bubble {
+      color: white;
+      background: linear-gradient(135deg, var(--user), #7b8cff);
+      border-color: rgba(255, 255, 255, 0.08);
+      border-bottom-right-radius: 7px;
+    }
+
+    .assistant .bubble {
+      border-bottom-left-radius: 7px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 0 4px;
+    }
+
+    .correction {
+      border: 1px solid rgba(101, 228, 198, 0.28);
+      background: rgba(101, 228, 198, 0.08);
+      border-radius: 16px;
+      padding: 10px 11px;
+      color: #dffcf5;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 12px;
+      background: rgba(5, 8, 15, 0.4);
+      display: grid;
+      gap: 10px;
+    }
+
+    .prompt-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .prompt {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      padding: 8px 10px;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .mic {
+      width: 48px;
+      height: 48px;
+      border-radius: 17px;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.06);
+      font-weight: 950;
+    }
+
+    textarea {
+      min-height: 48px;
+      max-height: 120px;
+      resize: none;
+      border-radius: 17px;
+    }
+
+    .send {
+      width: 54px;
+      height: 48px;
+      border: 0;
+      border-radius: 17px;
+      color: #071117;
+      background: var(--accent);
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .mobile-panel-toggle {
+      display: none;
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .sidebar {
+        min-height: auto;
+      }
+
+      .mobile-panel-toggle {
+        display: inline-flex;
+      }
+
+      .sidebar.collapsed .card:not(.profile-card),
+      .sidebar.collapsed .stats,
+      .sidebar.collapsed .brand .streak {
+        display: none;
+      }
+
+      .chat-shell {
+        min-height: 72svh;
+      }
+
+      .message {
+        max-width: 92%;
+      }
+
+      .chat-top {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="mark">
+          <div class="logo">SL</div>
+          <div>
+            <h1>SpeakLoop</h1>
+            <p class="tagline">Daily AI language practice</p>
+          </div>
+        </div>
+        <div class="streak" id="streak">3 day streak</div>
+      </div>
+
+      <section class="card profile-card">
+        <div class="section-title">
+          <h2>Practice Setup</h2>
+          <button class="chip mobile-panel-toggle" id="togglePanel" type="button">Options</button>
+        </div>
+        <div class="control-grid">
+          <label>
+            Language
+            <select id="language">
+              <option value="Spanish">Spanish</option>
+              <option value="French">French</option>
+              <option value="Arabic">Arabic</option>
+              <option value="German">German</option>
+              <option value="Italian">Italian</option>
+              <option value="Japanese">Japanese</option>
+            </select>
+          </label>
+          <label>
+            Level
+            <select id="level">
+              <option>Beginner</option>
+              <option selected>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </label>
+          <label>
+            Your name
+            <input id="learnerName" value="Alex" maxlength="18">
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>Roleplay Mode</h2>
+          <span class="small">Tap one</span>
+        </div>
+        <div class="chips" id="roles">
+          <button class="chip active" type="button" data-role="Cafe">Cafe</button>
+          <button class="chip" type="button" data-role="Travel">Travel</button>
+          <button class="chip" type="button" data-role="Job Interview">Job</button>
+          <button class="chip" type="button" data-role="Everyday">Everyday</button>
+          <button class="chip" type="button" data-role="Dating">Dating</button>
+        </div>
+      </section>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="messageCount">0</strong>
+          <span>sentences practiced</span>
+        </div>
+        <div class="stat">
+          <strong id="correctionCount">0</strong>
+          <span>corrections saved</span>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>Vocabulary</h2>
+          <span class="small">from practice</span>
+        </div>
+        <div class="vocab-list" id="vocabList"></div>
+      </section>
+    </aside>
+
+    <section class="chat-shell">
+      <header class="chat-top">
+        <div class="tutor">
+          <div class="avatar" id="avatar">ES</div>
+          <div>
+            <h2 id="chatTitle">Spanish Cafe Practice</h2>
+            <div class="status-dot" id="chatSubtitle">Maya is ready to practice</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="resetChat" type="button">Reset</button>
+          <button class="primary-btn" id="dailyPrompt" type="button">Daily prompt</button>
+        </div>
+      </header>
+
+      <div class="messages" id="messages" aria-live="polite"></div>
+
+      <footer class="composer">
+        <div class="prompt-row" id="promptRow">
+          <button class="prompt" type="button">I want to order coffee</button>
+          <button class="prompt" type="button">Ask me about my day</button>
+          <button class="prompt" type="button">Correct my grammar</button>
+          <button class="prompt" type="button">Make it harder</button>
+        </div>
+        <div class="input-row">
+          <button class="mic" id="micBtn" type="button" aria-label="Voice input">Mic</button>
+          <textarea id="messageInput" placeholder="Reply in the language you are practicing..."></textarea>
+          <button class="send" id="sendBtn" type="button" aria-label="Send">></button>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const languageData = {
+      Spanish: {
+        code: "ES",
+        tutor: "Maya",
+        greeting: "Hola Alex. I am Maya. Let us practice a simple cafe conversation. Try ordering something in Spanish.",
+        phrases: ["Quiero", "por favor", "la cuenta", "un cafe", "gracias"],
+        corrections: {
+          "i want": "Try: Quiero...",
+          "coffee": "Use: cafe",
+          "please": "Use: por favor",
+          "thank": "Use: gracias"
+        }
+      },
+      French: {
+        code: "FR",
+        tutor: "Camille",
+        greeting: "Bonjour Alex. I am Camille. Let us practice a cafe conversation. Try ordering something in French.",
+        phrases: ["Je voudrais", "s'il vous plait", "l'addition", "un cafe", "merci"],
+        corrections: {
+          "i want": "Try: Je voudrais...",
+          "coffee": "Use: un cafe",
+          "please": "Use: s'il vous plait",
+          "thank": "Use: merci"
+        }
+      },
+      Arabic: {
+        code: "AR",
+        tutor: "Noura",
+        greeting: "Ahlan Alex. I am Noura. Let us practice a friendly cafe conversation in Arabic.",
+        phrases: ["ureed", "min fadlik", "qahwa", "shukran", "al hisab"],
+        corrections: {
+          "i want": "Try: ureed...",
+          "coffee": "Use: qahwa",
+          "please": "Use: min fadlik",
+          "thank": "Use: shukran"
+        }
+      },
+      German: {
+        code: "DE",
+        tutor: "Lena",
+        greeting: "Hallo Alex. I am Lena. Let us practice ordering at a cafe in German.",
+        phrases: ["Ich mochte", "bitte", "die Rechnung", "einen Kaffee", "danke"],
+        corrections: {
+          "i want": "Try: Ich mochte...",
+          "coffee": "Use: einen Kaffee",
+          "please": "Use: bitte",
+          "thank": "Use: danke"
+        }
+      },
+      Italian: {
+        code: "IT",
+        tutor: "Sofia",
+        greeting: "Ciao Alex. I am Sofia. Let us practice a cafe conversation in Italian.",
+        phrases: ["Vorrei", "per favore", "il conto", "un caffe", "grazie"],
+        corrections: {
+          "i want": "Try: Vorrei...",
+          "coffee": "Use: un caffe",
+          "please": "Use: per favore",
+          "thank": "Use: grazie"
+        }
+      },
+      Japanese: {
+        code: "JP",
+        tutor: "Aiko",
+        greeting: "Konnichiwa Alex. I am Aiko. Let us practice a simple cafe conversation in Japanese.",
+        phrases: ["kudasai", "koohii", "arigatou", "sumimasen", "okaikei"],
+        corrections: {
+          "i want": "Try using kudasai at the end.",
+          "coffee": "Use: koohii",
+          "please": "Use: kudasai",
+          "thank": "Use: arigatou"
+        }
+      }
+    };
+
+    const state = {
+      language: "Spanish",
+      level: "Intermediate",
+      role: "Cafe",
+      learnerName: "Alex",
+      messages: [],
+      corrections: 0,
+      practiced: 0,
+      vocab: []
+    };
+
+    const languageEl = document.getElementById("language");
+    const levelEl = document.getElementById("level");
+    const learnerNameEl = document.getElementById("learnerName");
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const resetBtn = document.getElementById("resetChat");
+    const dailyPromptBtn = document.getElementById("dailyPrompt");
+    const avatarEl = document.getElementById("avatar");
+    const titleEl = document.getElementById("chatTitle");
+    const subtitleEl = document.getElementById("chatSubtitle");
+    const messageCountEl = document.getElementById("messageCount");
+    const correctionCountEl = document.getElementById("correctionCount");
+    const vocabListEl = document.getElementById("vocabList");
+    const promptRow = document.getElementById("promptRow");
+    const sidebar = document.getElementById("sidebar");
+    const togglePanel = document.getElementById("togglePanel");
+    const micBtn = document.getElementById("micBtn");
+
+    function data() {
+      return languageData[state.language];
+    }
+
+    function updateHeader() {
+      const current = data();
+      avatarEl.textContent = current.code;
+      titleEl.textContent = `${state.language} ${state.role} Practice`;
+      subtitleEl.textContent = `${current.tutor} is ready for ${state.level.toLowerCase()} practice`;
+    }
+
+    function addMessage(author, text, correction = "") {
+      state.messages.push({ author, text, correction });
+      renderMessages();
+    }
+
+    function renderMessages() {
+      messagesEl.innerHTML = "";
+      state.messages.forEach(message => {
+        const wrap = document.createElement("article");
+        wrap.className = `message ${message.author}`;
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.textContent = message.text;
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = message.author === "user" ? state.learnerName : data().tutor;
+        wrap.appendChild(bubble);
+        wrap.appendChild(meta);
+        if (message.correction) {
+          const note = document.createElement("div");
+          note.className = "correction";
+          note.textContent = message.correction;
+          wrap.appendChild(note);
+        }
+        messagesEl.appendChild(wrap);
+      });
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      messageCountEl.textContent = String(state.practiced);
+      correctionCountEl.textContent = String(state.corrections);
+      renderVocab();
+    }
+
+    function renderVocab() {
+      vocabListEl.innerHTML = "";
+      const items = state.vocab.slice(-6);
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "small";
+        empty.textContent = "New words will appear here as you practice.";
+        vocabListEl.appendChild(empty);
+        return;
+      }
+      items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "vocab";
+        row.innerHTML = `<b>${item.word}</b><span>${item.meaning}</span>`;
+        vocabListEl.appendChild(row);
+      });
+    }
+
+    function buildCorrection(text) {
+      const lower = text.toLowerCase();
+      const tips = [];
+      Object.entries(data().corrections).forEach(([key, tip]) => {
+        if (lower.includes(key)) tips.push(tip);
+      });
+      if (!tips.length && text.trim().split(/\s+/).length < 4) {
+        tips.push("Try answering with a full sentence so the conversation feels natural.");
+      }
+      return tips.length ? `Correction: ${tips.join(" ")}` : "";
+    }
+
+    function tutorReply(text) {
+      const current = data();
+      const phrase = current.phrases[Math.floor(Math.random() * current.phrases.length)];
+      const roleLine = {
+        Cafe: `Nice. Now ask for one more thing using "${phrase}".`,
+        Travel: `Good. Imagine you are at the station. Ask where something is using "${phrase}".`,
+        "Job Interview": `Good answer. Now say one strength and include "${phrase}".`,
+        Everyday: `Great. Tell me one detail about your day and try "${phrase}".`,
+        Dating: `Nice. Ask a friendly follow-up question and use "${phrase}".`
+      }[state.role];
+      return `${roleLine} I will keep the conversation in ${state.language}, but I can explain in English when needed.`;
+    }
+
+    function saveVocab() {
+      const phrases = data().phrases;
+      const phrase = phrases[state.practiced % phrases.length];
+      state.vocab.push({ word: phrase, meaning: "practice phrase" });
+    }
+
+    function sendMessage(text = inputEl.value) {
+      const clean = text.trim();
+      if (!clean) return;
+      const correction = buildCorrection(clean);
+      addMessage("user", clean, correction);
+      state.practiced += 1;
+      if (correction) state.corrections += 1;
+      saveVocab();
+      inputEl.value = "";
+      window.setTimeout(() => addMessage("assistant", tutorReply(clean)), 350);
+    }
+
+    function resetChat() {
+      state.messages = [];
+      state.practiced = 0;
+      state.corrections = 0;
+      state.vocab = [];
+      updateHeader();
+      addMessage("assistant", data().greeting.replace("Alex", state.learnerName));
+    }
+
+    function setLanguage(language) {
+      state.language = language;
+      resetChat();
+    }
+
+    languageEl.addEventListener("change", () => setLanguage(languageEl.value));
+    levelEl.addEventListener("change", () => {
+      state.level = levelEl.value;
+      updateHeader();
+      addMessage("assistant", `Level changed to ${state.level}. I will adjust the difficulty.`);
+    });
+    learnerNameEl.addEventListener("input", () => {
+      state.learnerName = learnerNameEl.value.trim() || "Friend";
+      renderMessages();
+    });
+
+    document.getElementById("roles").addEventListener("click", event => {
+      const chip = event.target.closest("[data-role]");
+      if (!chip) return;
+      document.querySelectorAll("[data-role]").forEach(item => item.classList.toggle("active", item === chip));
+      state.role = chip.dataset.role;
+      resetChat();
+    });
+
+    sendBtn.addEventListener("click", () => sendMessage());
+    inputEl.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+    resetBtn.addEventListener("click", resetChat);
+    dailyPromptBtn.addEventListener("click", () => {
+      addMessage("assistant", `Daily prompt: introduce yourself in ${state.language}, then ask me one question.`);
+    });
+    promptRow.addEventListener("click", event => {
+      const prompt = event.target.closest(".prompt");
+      if (prompt) inputEl.value = prompt.textContent;
+      inputEl.focus();
+    });
+    togglePanel.addEventListener("click", () => sidebar.classList.toggle("collapsed"));
+
+    micBtn.addEventListener("click", () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        addMessage("assistant", "Voice input is not supported in this browser yet. You can still type your answer.");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = state.language === "Spanish" ? "es-ES" : state.language === "French" ? "fr-FR" : "en-US";
+      recognition.onresult = event => {
+        inputEl.value = event.results[0][0].transcript;
+      };
+      recognition.start();
+    });
+
+    resetChat();
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
